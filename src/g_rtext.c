@@ -377,50 +377,13 @@ void rtext_retext(t_rtext *x)
     t_text *text = x->x_text;
     t_freebytes(x->x_buf, x->x_bufsize);
     binbuf_gettext(text->te_binbuf, &x->x_buf, &x->x_bufsize);
-        /* special case: for number boxes, try to pare the number down
-        to the specified width of the box. */
     if (text->te_width > 0 && text->te_type == T_ATOM &&
         x->x_bufsize > text->te_width)
     {
-        t_atom *atomp = binbuf_getvec(text->te_binbuf);
-        int natom = binbuf_getnatom(text->te_binbuf);
         int bufsize = x->x_bufsize;
-        if (natom == 1 && atomp->a_type == A_FLOAT)
-        {
-                /* try to reduce size by dropping decimal digits */
-            int wantreduce = bufsize - text->te_width;
-            char *decimal = 0, *nextchar, *ebuf = x->x_buf + bufsize,
-                *s1, *s2;
-            int ndecimals;
-            for (decimal = x->x_buf; decimal < ebuf; decimal++)
-                if (*decimal == '.')
-                    break;
-            if (decimal >= ebuf)
-                goto giveup;
-            for (nextchar = decimal + 1; nextchar < ebuf; nextchar++)
-                if (*nextchar < '0' || *nextchar > '9')
-                    break;
-            if (nextchar - decimal - 1 < wantreduce)
-                goto giveup;
-            for (s1 = nextchar - wantreduce, s2 = s1 + wantreduce;
-                s2 < ebuf; s1++, s2++)
-                    *s1 = *s2;
-            x->x_buf = t_resizebytes(x->x_buf, bufsize, text->te_width);
-            bufsize = text->te_width;
-            goto done;
-        giveup:
-                /* give up and bash it to "+" or "-" */
-            x->x_buf[0] = (atomp->a_w.w_float < 0 ? '-' : '+');
-            x->x_buf = t_resizebytes(x->x_buf, bufsize, 1);
-            bufsize = 1;
-        }
-        else if (bufsize > text->te_width)
-        {
-            x->x_buf[text->te_width - 1] = '>';
-            x->x_buf = t_resizebytes(x->x_buf, bufsize, text->te_width);
-            bufsize = text->te_width;
-        }
-    done:
+        x->x_buf[text->te_width - 1] = '>';
+        x->x_buf = t_resizebytes(x->x_buf, bufsize, text->te_width);
+        bufsize = text->te_width;
         x->x_bufsize = bufsize;
     }
     rtext_senditup(x, SEND_UPDATE, &w, &h, &indx);
