@@ -1,4 +1,4 @@
-#N canvas 406 36 607 635 12;
+#N canvas 406 36 607 651 12;
 #X msg 44 129 bang;
 #X obj 45 347 float 6.5;
 #X floatatom 45 377 0 0 0 0 - - - 0;
@@ -22,19 +22,19 @@ and outputs it., f 71;
 ;
 #X symbolatom 79 276 10 0 0 0 - - - 0;
 #X text 156 276 <= type a number on a symbol box;
-#X text 346 590 updated for Pd version 0.48;
-#X text 36 592 see also:;
-#X obj 193 593 value;
-#X obj 239 593 send;
+#X text 346 610 updated for Pd version 0.48;
+#X text 36 612 see also:;
+#X obj 193 613 value;
+#X obj 239 613 send;
 #X floatatom 437 225 5 0 0 0 - - - 0;
 #X obj 437 201 v float-help;
 #X obj 437 181 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
 #000000 #000000;
-#X obj 110 593 int;
+#X obj 110 613 int;
 #X text 99 14 - store a (floating point) number;
 #X obj 356 15 f;
 #X text 388 15 - abbreviation;
-#X obj 141 593 symbol;
+#X obj 141 613 symbol;
 #N canvas 995 162 565 399 Dealing_with_"\$0" 0;
 #X text 36 33 '\$0' - the patch ID number used to force locality in
 Pd - is widely used in send and receive names \, speacially in abstractions
@@ -69,24 +69,27 @@ in GUIs as well as variable names in value objects., f 68;
 #X connect 11 0 12 0;
 #X connect 12 0 10 0;
 #X connect 13 0 1 0;
-#X restore 383 532 pd Dealing_with_"\$0";
+#X restore 383 572 pd Dealing_with_"\$0";
 #X floatatom 437 257 5 0 0 0 - float-help - 0;
 #X text 483 257 <= right click for properties, f 10;
 #X text 186 179 send to a named object such as a GUI \, a receive or
 value objects =>, f 34;
-#X text 196 519 open subpatch to see how to deal with '\$0' ======>
+#X text 196 559 open subpatch to see how to deal with '\$0' ======>
 , f 25;
-#X obj 44 425 100;
-#X obj 108 425 f 100;
-#X obj 44 456 \$0;
-#X obj 108 456 f \$0;
-#X text 170 423 <-- notice that due to the way pd manages float's selector
+#X obj 44 415 100;
+#X obj 108 415 f 100;
+#X obj 44 446 \$0;
+#X obj 108 446 f \$0;
+#X text 170 413 <-- notice that due to the way pd manages float's selector
 \, when you type a float alone in an object box \, pd actually creates
 a float object \, so these objects are actually equivalent (but for
 better readability \, it is encouraged to always put "f" or "float"
 to create a float object);
-#X text 13 487 possible...;
-#X text 103 488 better!!;
+#X text 13 477 possible...;
+#X text 103 478 better!!;
+#X obj 222 511 route;
+#X text 274 506 <-- also check route helpfile to read more about special
+selectors, f 33;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;
 #X connect 3 0 1 0;
