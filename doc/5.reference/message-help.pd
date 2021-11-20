@@ -5,11 +5,12 @@
 #X msg 181 480 pitch \$1 \, velocity \$2, f 11;
 #X msg 574 100 123 \; my-receiver-name 858 \; another-receiver -45
 ;
-#X text 45 100 Clicking on a message also sends it \, so you can use
+#X text 43 100 Clicking on a message also sends it \, so you can use
 message boxes for push buttons. For instance \, click here while watching
-the printout window:, f 65;
-#X msg 192 158 walk the dog;
-#X obj 192 187 print;
+the printout window: (you can type ctrl + r to bring console to front)
+, f 65;
+#X msg 192 168 walk the dog;
+#X obj 192 197 print;
 #X obj 586 207 receive my-receiver-name;
 #X floatatom 586 237 6 0 0 0 - - - 0;
 #X floatatom 781 237 6 0 0 0 - - - 0;
@@ -48,8 +49,8 @@ semicolon, f 36;
 #X connect 13 0 0 0;
 #X connect 14 0 0 0;
 #X restore 777 355 pd changing-messages;
-#X text 243 187 <= object (different border);
-#X text 288 157 <= message;
+#X text 243 197 <= object (different border);
+#X text 288 167 <= message;
 #X text 45 48 Message boxes hold one or more messages. Anytime the
 message box receives any message at all \, the messages in the box
 are all sent to their destinations., f 65;
