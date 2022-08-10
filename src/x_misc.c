@@ -54,7 +54,7 @@ typedef struct _random
 } t_random;
 
 
-static int makeseed(void)
+int makeseed(void)
 {
     static PERTHREAD unsigned int random_nextseed = 0;
     if (!random_nextseed)
