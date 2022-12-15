@@ -524,7 +524,7 @@
 #X floatatom 34 412 4 0 0 0 - - - 0;
 #X obj 34 441 print vradio;
 #X text 76 375 the cells.;
-#X text 30 135 Insert it from the Put menu (named as "Vradio" or "Hradio") or its shortcuts for the Vertical and Horizontal versions respectively. Alternatively \, create it by typing "vradio" or "hradio" (for vertical) and "hslider"(for horizontal) into an object box. You can change the orienteation from vertical to horizontal and vice versa via a message or properties. Also right click for properties to set size \, colors \, labels and more., f 79;
+#X text 30 135 Insert it from the Put menu (named as "Vradio" or "Hradio") or its shortcuts for the Vertical and Horizontal versions respectively. Alternatively \, create it by typing "vradio" or "hradio" (for vertical) and "hslider"(for horizontal) into an object box. You can change the orientation from vertical to horizontal and vice versa via a message or properties. Also right click for properties to set size \, colors \, labels and more., f 79;
 #X text 57 360 <-- click on -->;
 #X connect 0 0 5 0;
 #X connect 1 0 8 0;
