@@ -22,6 +22,8 @@ dist_libpdtcl_DATA = \
     dialog_canvas.tcl \
     dialog_gatom.tcl \
     dialog_path.tcl \
+    object_tree.tcl \
+    object_browser.tcl \
     pd_bindings.tcl \
     pd_menus.tcl \
     pdwindow.tcl \
