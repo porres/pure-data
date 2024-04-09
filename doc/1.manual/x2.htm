@@ -91,7 +91,7 @@ having trouble reading on HiDPI screens. in the <b>Edit menu</b> you can also cl
 all messages printed in the Pd window with the 'Clear Console' entry (<kbd>Shift +
 Ctrl + L</kbd> shortcut). On the <b>Window menu</b> you find the 'Pd Window' entry
 (with the <kbd>Ctrl + R</kbd> shortcut), which brings the Pd window to the front or
-sends it behind and brings back to focus the last focused window.
+sends it behind the last focused window.
 
 <P>
     <IMG src="img/2.1.3.png" ALT="edit menu">
@@ -117,13 +117,13 @@ without confirmation, use <kbd>Shift + Ctrl + Q</kbd>.
     <IMG src="img/2.1.5.png" ALT="simple patch">
 </P>
 
-<P>There are four <I>text boxes</I> in this patch: a number box (showing zero),
-an object box showing "print", plus two "comments" (which are simply commentaries
-that don't really affect the patch and can't be connected to anything). The number
-box is connected to the object box, with the output of the number box feeding into
-the input of the [print] object box. Boxes may have zero or more inputs and/or
-outputs, with the inputs on top and the outputs on the bottom. When clicking and
-dragging on the number box, the values are printed in the main "Pd" window.
+<P>There are four <I>text boxes</I> in this patch: a "number box" (displaying the
+value 0), a [print] "object box", plus two "comments" (which can't be connected
+to anything and are not affecting the patch; therefore mainly used for documentation).
+The number box is connected to the object box, with the output of the number box
+feeding into the input of the [print] object box. Boxes may have zero or more inputs
+and/or outputs, with the inputs on top and the outputs on the bottom. When clicking
+and dragging on the number box, the values are printed in the main "Pd" window.
 
 <H3> <A id="s1.2">2.1.2. Object boxes</A> </H3>
 
@@ -311,8 +311,8 @@ are also entries for "array" and "graph" that will be explained later.
 a shortcut, Pd automatically switches to edit mode. When you create boxes
 this way, they are automatically selected and follow the mouse cursor position;
 drag them around as desired until you click to position them where you want.
-This keeps the box selected and you can desselect it by clicking on an empty spot
-of the patch or using the <kbd>Esc</kbd> key.
+This keeps the box selected and you can deselect it by clicking on an empty spot
+of the patch or by pressing the <kbd>Esc</kbd> key.
 
 <P>Message and object boxes are empty when created. After being positioned you
 starting to type into them. Also, start to typing into them will force position
