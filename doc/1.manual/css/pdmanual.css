@@ -26,12 +26,13 @@ ol>li:before {
 }
 
 figure {
-    padding-bottom: 2em;
+    padding: 1em 0;
 }
 
 figcaption{
-    font-size:   13.7pt;
-    padding-top: 0.5em;
+    padding-top: 1em;
+    font-size: 90%;
+    text-align: center;
 }
 
 H1 {
