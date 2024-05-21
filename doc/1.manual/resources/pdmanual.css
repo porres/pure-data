@@ -73,7 +73,12 @@ H6 {
     text-align:  left;
     margin-left: 3em;
 }
-
+img#logo {
+    display: inline-block;
+    height: 2em;
+    padding-right: 0.5em;
+    margin-bottom: -0.25em;
+}
 H1, H2, H3, H4, H5, H6, ol, ul, mark, PRE {
 }
 
