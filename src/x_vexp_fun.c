@@ -155,7 +155,7 @@ static void ex_hypot(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *
 static void ex_nearbyint(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *optr);
 #endif
 
-static void ex_symboln(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *optr);
+static void ex_symbol1(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *optr);
 static void ex_symbol(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *optr);
 static void ex_tolower(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *optr);
 static void ex_tonlower(t_expr *expr, long argc, struct ex_ex *argv, struct ex_ex *optr);
@@ -184,6 +184,8 @@ extern void ex_avg(t_expr *expr, long int argc, struct ex_ex *argv,
 extern void ex_Avg(t_expr *expr, long int argc, struct ex_ex *argv,
                                                         struct ex_ex *optr);
 extern void ex_store(t_expr *expr, long int argc, struct ex_ex *argv,
+                                                        struct ex_ex *optr);
+extern void ex_var (t_expr *expr, long int argc, struct ex_ex *argv,
                                                         struct ex_ex *optr);
 extern void ex_tabread4(t_expr *expr, long int argc, struct ex_ex *argv,
                                                         struct ex_ex *optr);
@@ -247,10 +249,8 @@ t_ex_func ex_funcs[] = {
         {"hypot",      ex_hypot,        2},
 #endif
         /* Symbol functions */
-        {"symbol",      ex_symbol,    	1},
-        {"sym",         ex_symbol,    	1},
-        {"symboln",     ex_symboln,    	3},
-        {"symn",        ex_symboln,    	3},
+        {"symbol",      ex_symbol,    	-1},
+        {"sym",         ex_symbol,    	-1},
         {"tolower",     ex_tolower,     1},
         {"tonlower",    ex_tonlower,    2},
         {"toupper",     ex_toupper,     1},
@@ -265,6 +265,7 @@ t_ex_func ex_funcs[] = {
         {"strpbrk",     ex_strpbrk,     2},
         {"strspn",      ex_strspn,      2},
         {"strcspn",     ex_strcspn,     2},
+        {"var",         ex_var,         1},
 
 #ifdef PD
         {"size",        ex_size,        1},
@@ -278,7 +279,7 @@ t_ex_func ex_funcs[] = {
 };
 
 /*
- * FUN_EVAL --  do type checking, evaluate a function,
+ * FUNC_EVAL -- do type checking, evaluate a function,
  *              if fltret is set return float
  *              otherwise return value based on regular typechecking,
  */
@@ -1424,7 +1425,14 @@ func(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)          
         struct ex_ex *left = (struct ex_ex *) 0;                                \
         struct ex_ex *right = (struct ex_ex *) 0;                               \
         char *leftstr, *rightstr;                                               \
-                                                                                \
+        struct ex_ex outval;                                          \
+        struct ex_ex *tmpoptr;                                        \
+                                                                      \
+        outval.ex_type = 0;                                           \
+        outval.ex_int = 0;                                            \
+        outval.ex_flags = 0;                                          \
+        tmpoptr = &outval;                                            \
+                                                                      \
         CHECK_LR_STR(left, right);
 
 /*
@@ -1438,20 +1446,90 @@ func(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)\
         struct ex_ex *left = (struct ex_ex *) 0;                      \
         struct ex_ex *right = (struct ex_ex *) 0;                     \
         char *leftstr, *rightstr;                                     \
-                                                                                \
+        struct ex_ex outval;                                          \
+        struct ex_ex *tmpoptr;                                        \
+                                                                      \
+        outval.ex_type = 0;                                           \
+        outval.ex_int = 0;                                            \
+        outval.ex_flags = 0;                                          \
+        tmpoptr = &outval;                                            \
+                                                                      \
         CHECK_LEFT_STR(left);
 
 /*
  * check to see if we need to free any buffers
  */
 #define STRFUNC_END()                                                 \
+        if (optr->ex_type == ET_VEC) {                                \
+            switch (tmpoptr->ex_type) {                               \
+            case ET_INT:                                              \
+                ex_mkvector(optr->ex_vec, (t_float) tmpoptr->ex_int,  \
+                                                    e->exp_vsize);    \
+                break;                                                \
+            case ET_FLT:                                              \
+                ex_mkvector(optr->ex_vec, tmpoptr->ex_flt,            \
+                                                    e->exp_vsize);    \
+                break;                                                \
+            case ET_SYM:                                              \
+                ex_mkvector(optr->ex_vec, 0.0, e->exp_vsize);         \
+                if (tmpoptr->ex_flags & EX_F_TSYM) {                  \
+                        free(tmpoptr->ex_ptr);                        \
+                }                                                     \
+                break;                                                \
+            default:                                                  \
+			    ex_error(e, "expr: bad return type INTERNAL ERROR",   \
+                                                e->exp_string);       \
+            }                                                         \
+            return;                                                   \
+        }                                                             \
+        *optr = *tmpoptr;                                             \
         return;                                                       \
 }
 
 #define EXPR_MAX_SYM_SIZE 512 /*largest symbol size, in sprintf it may be 500*/
 
+void
+ex_var (t_expr *expr, long int argc, struct ex_ex *argv, struct ex_ex *optr)
+{
+        t_float retval;
+
+
+        switch(argv->ex_type) {
+        case ET_SYM:
+            if (argv->ex_flags & EX_F_TSYM)
+                /*
+                 * SDY - we do not have the idx value here, so we are passing 0
+                 * var() cannot evaluate the sys_idx variable
+                 */
+                max_ex_var(expr, gensym(argv->ex_ptr), optr, 0);
+            else
+                max_ex_var(expr, (t_symbol *) argv->ex_ptr, optr, 0);
+            return;
+
+        case ET_SI:
+                if (!expr->exp_var[argv->ex_int].ex_ptr)
+                        break;
+                max_ex_var(expr,(t_symbol *) expr->exp_var[argv->ex_int].ex_ptr, optr, 0);
+                return;
+
+        default:
+                ex_error(expr, "var(): argument not a string - type = %ld\n",
+                                argv->ex_type);
+                break;
+        }
+        if (optr->ex_type == ET_VEC)
+            ex_mkvector(optr->ex_vec, 0.0, expr->exp_vsize);
+        else {
+            optr->ex_type = ET_INT;
+            optr->ex_int = 0;
+        }
+        return;
+           
+}
+
+
 static void
-ex_symbol(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)
+ex_symbol1(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)
 {
         struct ex_ex *left;
 						/* we will not realloc to exact size for efficiecy */
@@ -1509,16 +1587,33 @@ goterror:
 }
 
 static void
-ex_symboln(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)
+ex_symbol(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)
 {
         struct ex_ex *left;
 		char format[25]; /* the largest int in a 64 bit is 20 characters */
 		int i, num1, num2;
 		char *strp; /* string pointer */
 
+        if (!argc) {
+            ex_makesymbol(e, optr, 1);
+            return;
+        }
+        if (argc == 1) 
+            return (ex_symbol1(e, argc, argv, optr));
+
+        if (argc != 2 && argc != 3) {
+			optr->ex_type = ET_INT;
+			optr->ex_int = 0;
+			ex_error(e, "expr: symbol/sym takes no more than 3 arguments", e->exp_string);
+            return;
+        }
+
         left = argv;
 		num1 = ex_getnumber(e, argv + 1);
-		num2 = ex_getnumber(e, argv + 2);
+        if (argc == 2)
+                num2 = -1;
+        else
+                num2 = ex_getnumber(e, argv + 2);
         switch (left->ex_type) {
         case ET_SYM:
 		case ET_SI:
@@ -1529,23 +1624,29 @@ ex_symboln(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)
 				*optr->ex_ptr = 0;
 				return;
 			}
-			if (!ex_makesymbol(e, optr, strlen(strp)))
+        	if (!ex_makesymbol(e, optr, EXPR_MAX_SYM_SIZE))
 				goto goterror;
-			snprintf(format, 25, "%%%d.%ds", num1, num2);
+            if (num2 == -1)
+                    snprintf(format, 25, "%%.%ds", num1);
+            else
+                    snprintf(format, 25, "%%%d.%ds", num2, num1);
 			snprintf(optr->ex_ptr, EXPR_MAX_SYM_SIZE, format, strp);
 			return;
 
 		case ET_INT:
         	if (!ex_makesymbol(e, optr, EXPR_MAX_SYM_SIZE))
                 goto goterror;
-			snprintf(format, 25, "%%%dld", num1);
+			snprintf(format, 25, "%%.%dld", num1);
 			snprintf(optr->ex_ptr, EXPR_MAX_SYM_SIZE, format, left->ex_int);
 			return;
 
 		case ET_FLT:
         	if (!ex_makesymbol(e, optr, EXPR_MAX_SYM_SIZE))
                 goto goterror;
-			snprintf(format, 25, "%%%d.%df", num1, num2);
+            if (num2 == -1)
+                    snprintf(format, 25, "%%.%df", num1);
+            else
+                    snprintf(format, 25, "%%%d.%df", num2, num1);
 			snprintf(optr->ex_ptr, EXPR_MAX_SYM_SIZE, format, left->ex_flt);
 			return;
 
@@ -1560,82 +1661,6 @@ goterror:
 		optr->ex_int = 0;
 		return;
 }
-
-
-/*
- * ex_tolower - replace all characters of the string with
- *              the corresponding lowercase letter
- */
-STRSINGLEFUNC_DEF(ex_tolower)
-        int i, size;
-
-        size = strlen(leftstr);
-        if (!ex_makesymbol(e, optr, size))
-                return;
-        strcat(optr->ex_ptr, leftstr);
-        for (i = 0; i < size +1; i++)
-                optr->ex_ptr[i] = tolower(optr->ex_ptr[i]);
-STRFUNC_END()
-
-/*
- * ex_tonlower - replace all characters of the string with
- *              the corresponding lowercase letter
- */
-STRSINGLEFUNC_DEF(ex_tonlower)
-        int i, size, num;
-
-        size = strlen(leftstr);
-        if (!ex_makesymbol(e, optr, size))
-                return;
-        num =  ex_getnumber(e, argv + 1);
-        strcat(optr->ex_ptr, leftstr);
-        num = min (size, num);
-        for (i = 0; i < num; i++)
-                optr->ex_ptr[i] = tolower(optr->ex_ptr[i]);
-STRFUNC_END()
-
-
-
-/*
- * ex_toupper - replace all characters of the string with
- *              the corresponding uppercase letter
- */
-STRSINGLEFUNC_DEF(ex_toupper)
-        int i, size;
-
-        size = strlen(leftstr);
-        if (!ex_makesymbol(e, optr, size))
-                return;
-        strcat(optr->ex_ptr, leftstr);
-        for (i = 0; i < size +1; i++)
-                optr->ex_ptr[i] = toupper(optr->ex_ptr[i]);
-STRFUNC_END()
-
-/*
- * ex_tonupper - replace no more than n characters of the string with
- *              the corresponding uppercase letter
- */
-STRSINGLEFUNC_DEF(ex_tonupper)
-        int i, size, num;
-
-        size = strlen(leftstr);
-        if (!ex_makesymbol(e, optr, size))
-                return;
-        num =  ex_getnumber(e, argv + 1);
-        strcat(optr->ex_ptr, leftstr);
-        num = min (size, num);
-        for (i = 0; i < num; i++)
-                optr->ex_ptr[i] = toupper(optr->ex_ptr[i]);
-STRFUNC_END()
-
-/*
- * ex_strlen - implement strlen()
- */
-STRSINGLEFUNC_DEF(ex_strlen)
-        optr->ex_type = ET_INT;
-        optr->ex_int = strlen(leftstr);
-STRFUNC_END()
-
 
 /*
  * ex_strcat - strcat() takes unlimited number of arguments
@@ -1669,8 +1694,6 @@ ex_strcat(t_expr *e, long int argc, struct ex_ex *argv, struct ex_ex *optr)
         return;
 }
 
-
-
 /*
  * ex_strncat - implement strncat()
  */
@@ -1679,20 +1702,94 @@ STRFUNC_DEF(ex_strncat)
         num =  ex_getnumber(e, argv + 2);
 		size = min(num, strlen(rightstr));
 
-        if (!ex_makesymbol(e, optr, size))
+        if (!ex_makesymbol(e, tmpoptr, size))
                 return;
 
-        strcat(optr->ex_ptr, leftstr);
-        strncat(optr->ex_ptr, rightstr, num);
+        strcat(tmpoptr->ex_ptr, leftstr);
+        strncat(tmpoptr->ex_ptr, rightstr, num);
 
+STRFUNC_END()
+
+/*
+ * ex_tolower - replace all characters of the string with
+ *              the corresponding lowercase letter
+ */
+STRSINGLEFUNC_DEF(ex_tolower)
+        int i, size;
+
+        size = strlen(leftstr);
+        if (!ex_makesymbol(e, tmpoptr, size))
+                return;
+        strcat(tmpoptr->ex_ptr, leftstr);
+        for (i = 0; i < size +1; i++)
+                tmpoptr->ex_ptr[i] = tolower(tmpoptr->ex_ptr[i]);
+STRFUNC_END()
+
+/*
+ * ex_tonlower - replace all characters of the string with
+ *              the corresponding lowercase letter
+ */
+STRSINGLEFUNC_DEF(ex_tonlower)
+        int i, size, num;
+
+        size = strlen(leftstr);
+        if (!ex_makesymbol(e, tmpoptr, size))
+                return;
+        num =  ex_getnumber(e, argv + 1);
+        strcat(tmpoptr->ex_ptr, leftstr);
+        num = min (size, num);
+        for (i = 0; i < num; i++)
+                tmpoptr->ex_ptr[i] = tolower(tmpoptr->ex_ptr[i]);
+STRFUNC_END()
+
+
+
+/*
+ * ex_toupper - replace all characters of the string with
+ *              the corresponding uppercase letter
+ */
+STRSINGLEFUNC_DEF(ex_toupper)
+        int i, size;
+
+        size = strlen(leftstr);
+        if (!ex_makesymbol(e, tmpoptr, size))
+                return;
+        strcat(tmpoptr->ex_ptr, leftstr);
+        for (i = 0; i < size +1; i++)
+                tmpoptr->ex_ptr[i] = toupper(tmpoptr->ex_ptr[i]);
+STRFUNC_END()
+
+/*
+ * ex_tonupper - replace no more than n characters of the string with
+ *              the corresponding uppercase letter
+ */
+STRSINGLEFUNC_DEF(ex_tonupper)
+        int i, size, num;
+
+        size = strlen(leftstr);
+        if (!ex_makesymbol(e, tmpoptr, size))
+                return;
+        num =  ex_getnumber(e, argv + 1);
+        strcat(tmpoptr->ex_ptr, leftstr);
+        num = min (size, num);
+        for (i = 0; i < num; i++)
+                tmpoptr->ex_ptr[i] = toupper(tmpoptr->ex_ptr[i]);
+STRFUNC_END()
+
+/*
+ * ex_strlen - implement strlen()
+ */
+STRSINGLEFUNC_DEF(ex_strlen)
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strlen(leftstr);
 STRFUNC_END()
 
 /*
  * ex_strcmp - implement strcmp()
  */
 STRFUNC_DEF(ex_strcmp)
-        optr->ex_type = ET_INT;
-        optr->ex_int = strcmp(leftstr, rightstr);
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strcmp(leftstr, rightstr);
 STRFUNC_END()
 
 /*
@@ -1703,16 +1800,16 @@ STRFUNC_DEF(ex_strncmp)
 
         num =  ex_getnumber(e, argv + 2);
 
-        optr->ex_type = ET_INT;
-        optr->ex_int = strncmp(leftstr, rightstr, num);
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strncmp(leftstr, rightstr, num);
 STRFUNC_END()
 
 /*
  * ex_strcasecmp - implement strcasecmp()
  */
 STRFUNC_DEF(ex_strcasecmp)
-        optr->ex_type = ET_INT;
-        optr->ex_int = strcasecmp(leftstr, rightstr);
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strcasecmp(leftstr, rightstr);
 STRFUNC_END()
 
 /*
@@ -1722,8 +1819,8 @@ STRFUNC_DEF(ex_strncasecmp)
         int num;
 
         num =  ex_getnumber(e, argv + 2);
-        optr->ex_type = ET_INT;
-        optr->ex_int = strncasecmp(leftstr, rightstr, num);
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strncasecmp(leftstr, rightstr, num);
 STRFUNC_END()
 
 
@@ -1736,21 +1833,25 @@ STRFUNC_DEF(ex_strpbrk)
 
         result = strpbrk(leftstr, rightstr);
         if (!result) {
-                optr->ex_type = ET_INT;
-                optr->ex_int = 0;
+                /*
+                 * strpbrk return NULL and not a pointer to an empty string
+                 * this can be quite cumbersome in Pd, thus, when no character is found
+                 * we turn a pointer to an empty (NULL) string
+                 */
+                ex_makesymbol(e, tmpoptr, 1);
                 return;
         }
-        if (!ex_makesymbol(e, optr, strlen(result) + 1))
+        if (!ex_makesymbol(e, tmpoptr, strlen(result) + 1))
                 return;
-        strcpy(optr->ex_ptr, result);
+        strcpy(tmpoptr->ex_ptr, result);
 STRFUNC_END()
 
 /*
  * ex_strspn - implement strspn()
  */
 STRFUNC_DEF(ex_strspn)
-        optr->ex_type = ET_INT;
-        optr->ex_int = strspn(leftstr, rightstr);
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strspn(leftstr, rightstr);
 STRFUNC_END()
 
 
@@ -1758,8 +1859,8 @@ STRFUNC_END()
  * ex_strcspn - implement strcspn()
  */
 STRFUNC_DEF(ex_strcspn)
-        optr->ex_type = ET_INT;
-        optr->ex_int = strcspn(leftstr, rightstr);
+        tmpoptr->ex_type = ET_INT;
+        tmpoptr->ex_int = strcspn(leftstr, rightstr);
 STRFUNC_END()
 
 

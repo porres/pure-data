@@ -1623,10 +1623,16 @@ eval_var(struct expr *expr, struct ex_ex *eptr, struct ex_ex *optr, int idx)
 
         }
 
-        optr->ex_type = ET_INT;
-        optr->ex_int = 0;
         if (!novar)
                 (void)max_ex_var(expr, (t_symbol *)var, optr, idx);
+        else {
+            if (optr->ex_type == ET_VEC)
+                ex_mkvector(optr->ex_vec, 0, expr->exp_vsize);
+            else {
+                optr->ex_type = ET_INT;
+                optr->ex_int = 0;
+            }
+        }
         return (++eptr);
 }
 
