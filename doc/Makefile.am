@@ -137,12 +137,12 @@ nobase_dist_libpd_DATA = \
      ./1.manual/resources/4.4.2.png \
      ./1.manual/resources/4.4.3.png \
      ./1.manual/index.htm \
-     ./1.manual/resources/chapter1.htm \
-     ./1.manual/resources/chapter2.htm \
-     ./1.manual/resources/chapter3.htm \
-     ./1.manual/resources/chapter4.htm \
-     ./1.manual/resources/chapter5.htm \
-     ./1.manual/resources/chapter6.htm \
+     ./1.manual/chapter1.htm \
+     ./1.manual/chapter2.htm \
+     ./1.manual/chapter3.htm \
+     ./1.manual/chapter4.htm \
+     ./1.manual/chapter5.htm \
+     ./1.manual/chapter6.htm \
      ./2.control.examples/00.INTRO.txt \
      ./2.control.examples/01.PART1.hello.pd \
      ./2.control.examples/02.editing.pd \
