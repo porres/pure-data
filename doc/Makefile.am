@@ -141,8 +141,8 @@ nobase_dist_libpd_DATA = \
      ./1.manual/2.theory.of.operation.htm \
      ./1.manual/3.installing.configuring.htm \
      ./1.manual/4.externals.htm \
-     ./1.manual/5.current.status.htm \
-     ./1.manual/6.building.from.source.htm \
+     ./1.manual/5.building.from.source.htm \
+     ./1.manual/6.release.notes.htm \
      ./2.control.examples/00.INTRO.txt \
      ./2.control.examples/01.PART1.hello.pd \
      ./2.control.examples/02.editing.pd \
