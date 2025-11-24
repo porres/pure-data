@@ -1,4 +1,4 @@
-#N canvas 187 34 1000 661 12;
+#N canvas 187 38 1000 661 12;
 #X msg 733 127 dsp \$1;
 #X msg 577 139 \; pd dsp 0;
 #X text 757 98 turn DSP engine on/off;
@@ -183,9 +183,9 @@
 #X connect 1 0 3 0;
 #X connect 2 0 1 0;
 #X restore 102 196 pd open;
-#X text 126 165 <-- open first example of the 4.Data.Structure section;
 #X text 66 242 Note you can also use "\$0" to give local names to subpatches. In this case we need to use [send] (as "\$0" doesn't work in messages)., f 61;
 #X text 70 16 The 'read' and 'write' messages can be used to import and export contents of a window \, which is something used for Data Structures. A 'scalar' message adds a Data Structure scalar to the window. The 'clear' message clears the contentes of a window whatever they are (objects \, Data Structures \, arrays \, anything)., f 61;
+#X text 126 165 <-- open first example of the 4.data.structures section;
 #X connect 0 0 13 0;
 #X connect 1 0 13 0;
 #X connect 2 0 1 0;
