@@ -577,6 +577,14 @@ static void sys_save_midi_params(
 {
     int i;
     midi_nmidiindev = nmidiindev;
+    if(nmidiindev > MAXMIDIINDEV) {
+        bug("requesting %d/%d MIDIin devices", nmidiindev, MAXMIDIINDEV);
+        nmidiindev = MAXMIDIINDEV-1;
+    }
+    if(nmidioutdev > MAXMIDIOUTDEV) {
+        bug("requesting %d/%d MIDIout devices", nmidioutdev, MAXMIDIOUTDEV);
+        nmidioutdev = MAXMIDIOUTDEV-1;
+    }
     for (i = 0; i < nmidiindev; i++)
     {
         midi_midiindev[i] = midiindev[i];
@@ -782,6 +790,15 @@ void glob_midi_dialog(t_pd *dummy, t_symbol *s, int argc, t_atom *argv)
             this to work coherently */
     if (sys_midiapi == API_ALSA)
     {
+        if(alsadevin > MAXMIDIINDEV) {
+            alsadevin = MAXMIDIINDEV;
+            pd_error(0, "number of alsa MIDI-in devices limited to %d", alsadevin);
+        }
+        if(alsadevout > MAXMIDIOUTDEV) {
+            alsadevout = MAXMIDIOUTDEV;
+            pd_error(0, "number of alsa MIDI-out devices limited to %d", alsadevout);
+        }
+
         nindev = alsadevin;
         noutdev = alsadevout;
         for (i = 0; i < nindev; i++)
