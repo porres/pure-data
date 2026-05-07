@@ -242,6 +242,8 @@ proc ::dialog_iemgui::toggle_font {mytoplevel gn_f} {
     $mytoplevel.label.name_entry configure -font $current_font_spec
     $mytoplevel.colors.sections.exp.fr_bk configure -font $current_font_spec
     $mytoplevel.colors.sections.exp.lb_bk configure -font $current_font_spec
+
+    ::dialog_iemgui::auto_apply_return $mytoplevel
 }
 
 proc ::dialog_iemgui::apply {mytoplevel} {
