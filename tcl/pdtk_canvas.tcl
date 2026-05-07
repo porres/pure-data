@@ -485,21 +485,23 @@ proc ::pdtk_canvas::pdtk_canvas_reflecttitle {mytoplevel \
     set name [::pdtk_text::unescape $name]
     set arguments [::pdtk_text::unescape $arguments]
     set name [::pdtk_canvas::cleanname "$name"]
+    set dirtychar {}
+    if {$dirty} {
+        set dirtychar "*"
+    }
     set ::windowname($mytoplevel) $name
     set ::pdtk_canvas::::window_fullname($mytoplevel) "$path/$name"
     if {$::windowingsystem eq "aqua"} {
+        # on macOS, the dirtiness is set via a window attribute
+        set dirtychar ""
         wm attributes $mytoplevel -modified $dirty
         if {[file exists "$path/$name"]} {
             # for some reason -titlepath can still fail so just catch it
             if [catch {wm attributes $mytoplevel -titlepath "$path/$name"}] {
-                wm title $mytoplevel "$path/$name"
             }
         }
-        wm title $mytoplevel "$name$arguments"
-    } else {
-        if {$dirty} {set dirtychar "*"} else {set dirtychar " "}
-        wm title $mytoplevel "$name$dirtychar$arguments - $path"
     }
+    wm title $mytoplevel "${dirtychar}${name}${arguments} - ${path}"
 }
 
 #------------------------------------------------------------------------------#
