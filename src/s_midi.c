@@ -528,7 +528,7 @@ static int midi_midiindev[MAXMIDIINDEV];
 static char midi_indevnames[MAXMIDIINDEV * DEVDESCSIZE];
 static int midi_nmidioutdev;
 static int midi_midioutdev[MAXMIDIOUTDEV];
-static char midi_outdevnames[MAXMIDIINDEV * DEVDESCSIZE];
+static char midi_outdevnames[MAXMIDIOUTDEV * DEVDESCSIZE];
 
 void sys_get_midi_apis(char *buf)
 {
