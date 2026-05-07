@@ -750,39 +750,31 @@ void glob_midi_properties(t_pd *dummy, t_floatarg flongform)
         (void *)glob_midi_properties, "");
 }
 
+#define MIDI_DIALOG_DEVS 9
+
     /* new values from dialog window */
 void glob_midi_dialog(t_pd *dummy, t_symbol *s, int argc, t_atom *argv)
 {
     int nmidiindev, midiindev[MAXMIDIINDEV];
     int nmidioutdev, midioutdev[MAXMIDIOUTDEV];
-    int i, nindev, noutdev;
-    int newmidiindev[9], newmidioutdev[9];
+    int i, nindev=0, noutdev=0;
+    int newmidiindev[MIDI_DIALOG_DEVS], newmidioutdev[MIDI_DIALOG_DEVS];
     int alsadevin, alsadevout;
 
-    for (i = 0; i < 9; i++)
+    for (i = 0; i < MIDI_DIALOG_DEVS; i++)
     {
-        newmidiindev[i] = atom_getfloatarg(i, argc, argv);
-        newmidioutdev[i] = atom_getfloatarg(i+9, argc, argv);
+        int dev = atom_getfloatarg(i, argc, argv);
+        if(dev > 0)
+            newmidiindev[nindev++] = dev;
+
+        dev = atom_getfloatarg(i+MIDI_DIALOG_DEVS, argc, argv);
+        if(dev > 0)
+            newmidioutdev[noutdev++] = dev;
     }
 
-    for (i = 0, nindev = 0; i < 9; i++)
-    {
-        if (newmidiindev[i] > 0)
-        {
-            newmidiindev[nindev] = newmidiindev[i]-1;
-            nindev++;
-        }
-    }
-    for (i = 0, noutdev = 0; i < 9; i++)
-    {
-        if (newmidioutdev[i] > 0)
-        {
-            newmidioutdev[noutdev] = newmidioutdev[i]-1;
-            noutdev++;
-        }
-    }
-    alsadevin = atom_getfloatarg(18, argc, argv);
-    alsadevout = atom_getfloatarg(19, argc, argv);
+    alsadevin = atom_getfloatarg(MIDI_DIALOG_DEVS + MIDI_DIALOG_DEVS + 0, argc, argv);
+    alsadevout = atom_getfloatarg(MIDI_DIALOG_DEVS + MIDI_DIALOG_DEVS + 1, argc, argv);
+
 #ifdef USEAPI_ALSA
             /* invent a story so that saving/recalling "settings" will
             be able to restore the number of devices.  ALSA MIDI handling
