@@ -344,13 +344,13 @@ proc ::dialog_iemgui::pdtk_iemgui_dialog {mytoplevel mainheader dim_header_UNUSE
     # on macOS, we want live widget updates
     if {$::windowingsystem eq "aqua"} {
         proc ::dialog_iemgui::auto_apply {mytoplevel} {
-            ::dialog_iemgui::apply ${mytoplevel}
+            return [::dialog_iemgui::apply ${mytoplevel}]
         }
         proc ::dialog_iemgui::auto_apply_return {mytoplevel} {
-            ::dialog_iemgui::apply_and_rebind_return ${mytoplevel}
+            return [::dialog_iemgui::apply_and_rebind_return ${mytoplevel}]
         }
         proc ::dialog_iemgui::auto_apply_noreturn {mytoplevel} {
-            ::dialog_iemgui::unbind_return ${mytoplevel}
+            return [::dialog_iemgui::unbind_return ${mytoplevel}]
         }
     }
 
@@ -508,7 +508,7 @@ proc ::dialog_iemgui::pdtk_iemgui_dialog {mytoplevel mainheader dim_header_UNUSE
     entry $mytoplevel.para.num.ent -textvariable ::dialog_iemgui::var_number($vid) -width 4
     pack $mytoplevel.para.num.ent $mytoplevel.para.num.lab -side right -anchor e
 
-    set applycmd "::dialog_iemgui::auto_apply $mytoplevel"
+    set applycmd [list ::dialog_iemgui::auto_apply ${mytoplevel}]
 
     if {$::dialog_iemgui::var_mode($vid) >= 0} {
         if {$mainheader == "|nbx|" } {
@@ -698,31 +698,16 @@ proc ::dialog_iemgui::pdtk_iemgui_dialog {mytoplevel mainheader dim_header_UNUSE
     $mytoplevel.dim.w_ent select adjust end
     focus $mytoplevel.dim.w_ent
 
-    # call apply on Return in entry boxes that are in focus & rebind Return to ok button
-    bind $mytoplevel.dim.w_ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.dim.h_ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.rng.min.ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.rng.max_ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.para.num.ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.label.name_entry <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.s_r.send.ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.s_r.receive.ent <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.label.xy.x_entry <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.label.xy.y_entry <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-    bind $mytoplevel.label.fontsize.entry <KeyPress-Return> "::dialog_iemgui::auto_apply_return $mytoplevel"
-
-    # unbind Return from ok button when an entry takes focus
-    $mytoplevel.dim.w_ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.dim.h_ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.rng.min.ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.rng.max_ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.para.num.ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.label.name_entry config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.s_r.send.ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.s_r.receive.ent config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.label.xy.x_entry config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.label.xy.y_entry config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
-    $mytoplevel.label.fontsize.entry config -validate focusin -vcmd "::dialog_iemgui::auto_apply_noreturn $mytoplevel"
+    foreach w { \
+                    dim.w_ent dim.h_ent rng.min.ent rng.max_ent para.num.ent \
+                    s_r.send.ent s_r.receive.ent \
+                    label.name_entry label.xy.x_entry label.xy.y_entry label.fontsize.entry \
+                } {
+        # call apply on Return in entry boxes that are in focus & rebind Return to ok button
+        bind ${mytoplevel}.${w} <KeyPress-Return> [list ::dialog_iemgui::auto_apply_return ${mytoplevel}]
+        # unbind Return from ok button when an entry takes focus
+        ${mytoplevel}.${w} config -validate focusin -vcmd [list ::dialog_iemgui::auto_apply_noreturn ${mytoplevel}]
+    }
 
     # live widget updates on OSX in lieu of Apply button
     if {$::windowingsystem eq "aqua"} {
@@ -754,10 +739,10 @@ proc ::dialog_iemgui::apply_and_rebind_return {mytoplevel} {
     focus $mytoplevel.cao.ok
     return 0
 }
-proc ::dialog_iemgui::unbind_return {mytoplevel} {
+proc ::dialog_iemgui::unbind_return {mytoplevel args} {
     bind $mytoplevel <KeyPress-Return> break
     return 1
 }
-proc ::dialog_iemgui::auto_apply          {mytoplevel} {    }
-proc ::dialog_iemgui::auto_apply_return   {mytoplevel} {    }
-proc ::dialog_iemgui::auto_apply_noreturn {mytoplevel} {    }
+proc ::dialog_iemgui::auto_apply          {mytoplevel} { return 1 }
+proc ::dialog_iemgui::auto_apply_return   {mytoplevel} { return 1 }
+proc ::dialog_iemgui::auto_apply_noreturn {mytoplevel} { return 1 }
