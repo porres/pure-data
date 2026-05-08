@@ -79,7 +79,7 @@ proc ::dialog_iemgui::clip_dim {mytoplevel} {
 proc ::dialog_iemgui::clip_num {mytoplevel} {
     set vid [string trimleft $mytoplevel .]
 
-    set ::dialog_iemgui::var_number($vid) [clip $::dialog_iemgui::var_number($vid) 1 2000]
+    set ::dialog_iemgui::var_number($vid) [clip $::dialog_iemgui::var_number($vid) 1 2048]
 }
 
 proc ::dialog_iemgui::sched_rng {mytoplevel} {
