@@ -366,12 +366,12 @@ static const char **jack_get_clients(void)
 
 static int jack_connect_ports(const char* source, const char* sink)
 {
-    char  regex_pattern[100]; /* its always the same, ... */
+    char  regex_pattern[1000]; /* its always the same, ... */
     int i;
     const char **jack_ports;
     int ret = -1;
 
-    if (source && strlen(source) <= 96) {
+    if (source && strlen(source) <= 996) {
         sprintf(regex_pattern, "%s:.*", source);
 
         jack_ports = jack_get_ports(jack_client, regex_pattern,
@@ -388,7 +388,7 @@ static int jack_connect_ports(const char* source, const char* sink)
             free(jack_ports);
         }
     }
-    if (sink && strlen(sink) <= 96) {
+    if (sink && strlen(sink) <= 996) {
         sprintf(regex_pattern, "%s:.*", sink);
 
         jack_ports = jack_get_ports(jack_client, regex_pattern,
@@ -519,8 +519,8 @@ int jack_open_audio(int inchans, int outchans, t_audiocallback callback)
     for (j=0; j<STUFF->st_outchannels; j++)
          output_port[j] = NULL;
 
-    /* display the current sample rate & block size. once the client is activated
-       (see below), you should rely on your own sample rate
+    /* display the current sample rate & block size. once the client is
+        activated (see below), you should rely on your own sample rate
        callback (see above) for this value.
     */
 
@@ -548,7 +548,8 @@ int jack_open_audio(int inchans, int outchans, t_audiocallback callback)
             port_name, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
         if (!input_port[j])
         {
-          pd_error(0, "JACK: can only register %d input ports (of %d requested)",
+          pd_error(0,
+            "JACK: can only register %d input ports (of %d requested)",
             j, inchans);
           STUFF->st_inchannels = inchans = j;
           break;
@@ -562,7 +563,8 @@ int jack_open_audio(int inchans, int outchans, t_audiocallback callback)
             port_name, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
         if (!output_port[j])
         {
-            pd_error(0, "JACK: can only register %d output ports (of %d requested)",
+            pd_error(0,
+                "JACK: can only register %d output ports (of %d requested)",
                 j, outchans);
             STUFF->st_outchannels = outchans = j;
             break;
@@ -600,7 +602,8 @@ int jack_open_audio(int inchans, int outchans, t_audiocallback callback)
     }
 
     if (jack_client_names[0] && jack_should_autoconnect)
-        jack_connect_ports(jack_client_names[jack_defaultsource], jack_client_names[jack_defaultsink]);
+        jack_connect_ports(jack_client_names[jack_defaultsource],
+            jack_client_names[jack_defaultsink]);
     return 0;
 }
 
@@ -679,15 +682,16 @@ int jack_send_dacs(void)
 #ifdef THREADSIGNAL
         if (sched_idletask())
         {
-                /* we might have received a "dsp" message or audio dialog message! */
+            /* we might have received a "dsp" or audio dialog message! */
             if (!jack_client || sched_get_using_audio() != SCHED_AUDIO_POLL)
                 return SENDDACS_NO;
                 /* otherwise check the ringbuffer again */
             continue;
         }
             /* only go to sleep if there is nothing else to do. */
-        sys_semaphore_wait(jack_sem);
-        retval = SENDDACS_SLEPT;
+        if (sys_semaphore_waitfor(jack_sem, 0.01))
+            retval = SENDDACS_SLEPT;
+        else return (SENDDACS_NO); /* slept more than 10 msec: we're stuck. */
 #else
         return (SENDDACS_NO);
 #endif
