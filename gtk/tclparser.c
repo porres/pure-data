@@ -390,19 +390,39 @@ static int cmd_destroy(ClientData cdata, Tcl_Interp *interp,
     return (TCL_OK);
 }
 
- /* pdtk_canvas_reflecttitle <tag> <dir> <filename> <args> <dirty>
- e.g., pdtk_canvas_reflecttitle .x2f403240 {/tmp} {z2.pd} {} 0 */
+ /* pdtk_canvas_reflecttitle <tag> <dir> <filename> <args> <states>
+ e.g., pdtk_canvas_reflecttitle .x2f403240 {/tmp} {z2.pd} {} {0 0} */
 static int cmd_pdtk_canvas_reflecttitle(ClientData cdata, Tcl_Interp *interp,
     int objc, Tcl_Obj *const objv[])
 {
     char *tag;
     Tcl_HashEntry *hash;
+    Tcl_Obj **obj2v;
+    int obj2c;
     char title[BIGSTRING + 1];
+
+    int dirty = 0;
+    int editmode = 0;
+
+
     title[BIGSTRING] = 0;
     if (objc != 6)
     {
         fprintf(stderr, "cmd_pdtk_canvas_reflecttitle: got %d args\n", objc);
         return (TCL_ERROR);
+    }
+    if(TCL_OK == Tcl_ListObjGetElements(interp, objv[5], &obj2c, &obj2v)) {
+        int v;
+        switch(obj2c) {
+        case 0: break;
+        case 1:
+            dirty = atoi(Tcl_GetString(obj2v[0]));
+            break;
+        default:
+            editmode = atoi(Tcl_GetString(obj2v[0]));
+            dirty = atoi(Tcl_GetString(obj2v[1]));
+            break;
+        }
     }
     tag = Tcl_GetString(objv[1]);
     if (!(hash = Tcl_FindHashEntry(&tcl_windowlist, tag)))
@@ -410,9 +430,10 @@ static int cmd_pdtk_canvas_reflecttitle(ClientData cdata, Tcl_Interp *interp,
     else
     {
         t_canvas *c = (t_canvas *)Tcl_GetHashValue(hash);
-        snprintf(title, BIGSTRING, "%s%c%s - %s",
+        snprintf(title, BIGSTRING, "%s%s%s%s - %s",
+            (dirty ? "*" : ""),
             Tcl_GetString(objv[3]),
-            (atoi(Tcl_GetString(objv[5])) ? '*' : ' '),
+            (editmode ? " [edit mode]":""),
             Tcl_GetString(objv[4]), Tcl_GetString(objv[2]));
 #ifdef DEBUGTCL
         fprintf(stderr, "set title for %s: %s\n", tag, title);
