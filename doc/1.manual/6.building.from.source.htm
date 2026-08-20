@@ -115,8 +115,21 @@ midi APIs:            PortMidi</samp></pre>
 # build Pd using a system installed PortAudio
 ./configure --without-local-portaudio</code></pre>
 
-<p>If you need to run Pd through a debugger (like gdb), you can
-build Pd with debugging symbols using the "--enable-debug" flag.</p>
+<p>The default build will do some moderate optimization.
+This can be tuned with the "--enable-optimizations" flag, which will tell the
+compiler to optimize for speed more aggressively (even at the cost of incorrect
+math operations).</p>
+
+<pre><code># build with speed optimizations
+./configure --enable-optimizations</code></pre>
+
+<p>If things go wrong and you need to run Pd through a debugger (like gdb), you can
+build Pd with debugging symbols using the "--enable-debug" flag.
+It's possible to specify both the "--enable-debug" and "--enable-optimizations"
+flags, which will build a optimized binary with debug symbols. However, the
+optimizer might mangle the source code in a way, that makes the debugging
+information less useful than you would wish for.
+If in doubt, disable optimizations when enabling the debug build.</p>
 
 <pre><code># build Pd with debugging information
 ./configure --enable-debug</code></pre>
